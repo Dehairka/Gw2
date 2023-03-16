@@ -1,6 +1,6 @@
-<template>
+<template comment>
   <div class="h-screen w-full relative p-0 m-0 overflow-hidden flex justify-center items-center text-white">
-    <!-- <pre>{{ getWords }}</pre> -->
+    <!-- CECI EST UN MOT CLÉ : Ornithorynque -->
     <div class="relative z-20 bg-black/60 p-4 rounded-lg flex flex-col items-center backdrop-blur-sm">
       <h1 class="text-3xl font-bold text-center">l'<span class="text-orange">O</span>util de <span class="text-orange">R</span>echerche <span class="text-orange">A</span>sura <span class="text-orange">N</span>ordique <span class="text-orange">G</span>randiose et <span class="text-orange">E</span>norme <br/>(<span class="text-orange">ORANGE</span>)</h1>
       <input class="w-full my-4 px-4 py-2 bg-orange/20 border border-orange rounded-lg mt-8" type="text" placeholder="Insérez un mot ici" v-model="word" @keyup.enter="searchWord()">
@@ -9,7 +9,6 @@
         Rechercher le mot
       </button>
       <div>
-        <!-- <pre>{{ indice }}</pre> -->
         <h2 class="text-xl text-white transiton" v-if="searching">Recherche...</h2>
         <div v-else class="transiton">
           <h2 class="text-xl text-danger transiton" v-if="error">Aucun mot correspondant</h2>

@@ -8,7 +8,8 @@ export default defineEventHandler(async (event) => {
     return wordsData.map((word) => ({
       id: word._id,
       name: word.name,
-      indice: word.indice
+      indice: word.indice,
+      image: word.image
     }));
   } catch (err) {
     console.dir(err);

@@ -9,15 +9,18 @@
           Rechercher le mot
         </button>
         <div>
-          <h2 class="text-xl text-white transiton" v-if="searching">Recherche...</h2>
-          <div v-else class="transiton">
-            <h2 class="text-xl text-danger transiton" v-if="error">Aucun mot correspondant</h2>
-            <h2 class="text-xl text-success transiton" v-else-if="!error && indice">Ceci est le bon mot ! Voici ton indice : <br/>{{ indice.indice }}</h2>
-            <div v-if="indice">
-                <a v-if="indice.image" :href="`/img/${indice.image}`" target="_blank">
-                    Clique sur l'image ou sur ce lien pour l'ouvrir dans un nouvel onglet
-                    <img class="w-1/2 m-auto" :src="`/img/${indice.image}`" alt="indice img">
-                 </a>
+          <h2 class="text-xl text-white transiton" v-if="first">Entrez un mot pour faire une recherche</h2>
+          <div v-else>
+            <h2 v-if="searching" class="text-xl text-white transiton">Recherche...</h2>
+            <div v-else class="transiton">
+              <h2 class="text-xl text-danger transiton" v-if="error">Aucun mot correspondant</h2>
+              <h2 class="text-xl text-success transiton" v-else>Ceci est le bon mot ! Voici ton indice : <br/>{{ indice.indice }}</h2>
+              <div v-if="indice">
+                  <a v-if="indice.image" :href="indice.image" target="_blank" class="cursor-pointer">
+                      Clique sur l'image ou sur ce lien pour l'ouvrir dans un nouvel onglet
+                      <img class="w-1/2 max-h-[400px] m-auto cursor-pointer" :src="indice.image" alt="indice img">
+                  </a>
+              </div>
             </div>
           </div>
         </div>
@@ -37,6 +40,11 @@
         content: 'MOT CLÉ : Ornithorynque'
     }]
     })
+
+    const uid = useCookie('uid')
+    if(!uid.value){
+      uid.value = Date.now().toString().slice(-6)
+    }
   </script>
 
   <script>
@@ -48,6 +56,7 @@
       return{
         error: false,
         searching: false,
+        first: true,
         waiting: true,
         word: '',
         indice: {}
@@ -57,18 +66,49 @@
       BreedingRhombusSpinner
     },
     methods: {
-      async getWords(){
-        const words = await $fetch('/api/words')
-        return words ? words : []
+      parseCookie(str){
+        return str.split(';').reduce((acc, c) => {
+          const [key, v] = c.trim().split('=').map(decodeURIComponent)
+          try {
+            return Object.assign(acc, { [key]: JSON.parse(v) })
+          } catch (e) {
+            return Object.assign(acc, { [key]: v })
+          }
+        }, {})
+      },
+      async postWord(){
+        const uid = this.parseCookie(document.cookie).uid ? this.parseCookie(document.cookie).uid : 'AucunID:'+Date.now().toString().slice(-6)
+        const response = await $fetch('/api/words', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: this.word,
+            uid: uid
+          })
+        })
+        return response
       },
       async searchWord(){
+        this.first = false
         this.searching = true
         this.waiting = false
-        const response = await this.getWords()
-        this.indice = response.find(word => word.name.toLowerCase() === this.word.toLowerCase())
+        const response = await this.postWord()
+        this.indice = response
+
   
         setTimeout(() => {
-          if(this.indice){
+          if(this.indice.code !== 'NOT_FOUND'){
+              if(this.indice.indice.includes(':arrow_right:')){
+                this.indice.indice = this.indice.indice.replace(/:arrow_right:/g, '▶️')
+              }
+              if(this.indice.indice.includes(':arrow_down:')){
+                this.indice.indice = this.indice.indice.replace(/:arrow_down:/g, '🔽')
+              }
+              if(this.indice.indice.includes(':arrow_up:')){
+                this.indice.indice = this.indice.indice.replace(/:arrow_up:/g, '🔼')
+              }
+              if(this.indice.indice.includes(':arrow_left:')){
+                this.indice.indice = this.indice.indice.replace(/:arrow_left:/g, '◀️')
+              }
             this.error = false
           }else{
             this.error = true
